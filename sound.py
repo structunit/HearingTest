@@ -18,6 +18,12 @@ p = pyaudio.PyAudio()
 
 
 class Sound:
+    def __init__(self):
+        self.frequency = 1000
+        self.time = 0.2
+        self.volume = 1
+        self.location = None
+
     def data_for_freq(self, frequency: float, time: float = None, volume: float = 1., loc=None):
         """get frames for a fixed frequency for a specified time or
         number of frames, if frame_count is specified, the specified
@@ -70,11 +76,10 @@ class Sound:
 
         return wavedata
 
-    def play(self, frequency, time, vol, loc=None):
-        """
-        play a frequency for a fixed time!
-        """
-        frames = self.data_for_freq(frequency, time, vol, loc)
+    def play(self):
+        print("Inside play")
+        print(self.frequency, " ", self.volume, " ", self.location)
+        frames = self.data_for_freq(self.frequency, self.time, self.volume, self.location)
         stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True)
         stream.write(frames)
         stream.stop_stream()

@@ -1,3 +1,5 @@
+import json
+
 import kivy
 import time
 import random
@@ -15,7 +17,7 @@ from kivy.clock import Clock
 
 kivy.require('1.11.1')  # replace with your current kivy version !
 
-s = Sound()
+
 
 
 class LoginScreen(GridLayout):
@@ -45,6 +47,8 @@ class TestButtons(GridLayout):
 
         self.running_test_event = None
         self.cancelled_test = False
+
+        self.sound = Sound()
 
     def delayed_work(self, func, items, delay=0):
         '''
@@ -81,13 +85,13 @@ class TestButtons(GridLayout):
             text_list = ["Test in progress", "1", "2", "3", "Starting test in"]
             delay = self.delayed_work(change_label_text, text_list, 1)
 
-            self.right_btn = Button(text="Right ear")
-            self.right_btn.bind(on_press=self.right_ear)
-            self.desk.add_widget(self.right_btn)
-
             self.left_btn = Button(text="Left ear")
             self.left_btn.bind(on_press=self.left_ear)
             self.desk.add_widget(self.left_btn)
+
+            self.right_btn = Button(text="Right ear")
+            self.right_btn.bind(on_press=self.right_ear)
+            self.desk.add_widget(self.right_btn)
 
             self.test_btn.text = "End test"
 
@@ -110,29 +114,84 @@ class TestButtons(GridLayout):
             self.remove_widget(self.right_btn)
             self.remove_widget(self.left_btn)
 
+            # Save results in a txt file
+            results = {"left": self.dict_left_ear, "right": self.dict_right_ear}
+            with open("results.json", "w") as json_file:
+                json.dump(results, json_file)
+                print("Saved json")
+
     def initialize_sound_dict(self):
         sounds = {"250": 0, "500": 0, "1000": 0, "2000": 0, "4000": 0, "8000": 0}
 
         db = {}
         for t in range(0, 110, 10):
-            db[t] = 0
+            db[str(t)] = 0
 
         for s in sounds:
             sounds[s] = db
         return sounds
 
-    def test_sound(self):
-        self.decibels = 0.1
+    def test_sound(self, t):
+        self.sound.frequency = self.freq
+        self.sound.volume = self.decibels
+        self.sound.location = self.location_of_sound
+        self.sound.time = 0.3
 
-        while self.decibels < 1:
-            self.test_sound_event = Clock.schedule_once(s.play(self.freq, 0.3, self.decibels, self.location_of_sound))
-            self.decibels += 0.1
-            time.sleep(1)
+        self.sound.play()
+
+        Clock.schedule_once(self.check_answer, 3)
 
 
     def get_next_freq(self):
-        self.freq = 440
+        if self.freq == 0:
+            self.freq = 250
+        else:
+            d = {"250": 500, "500": 1000, "1000": 2000, "2000": 4000, "4000": 8000, "8000": -1}
+            self.freq = d[str(self.freq)]
 
+    def check_answer(self, t):
+        if self.location_of_sound == "left":
+            if self.user_location_answer == "left":
+                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = 1
+                self.get_next_freq()
+                self.decibels = 0.1
+            elif self.user_location_answer == "right":
+                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = -1
+                self.decibels += 0.1
+            else:
+                self.decibels += 0.1
+        elif self.location_of_sound == "right":
+            if self.user_location_answer == "left":
+                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = -1
+                self.decibels += 0.1
+            elif self.user_location_answer == "right":
+                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = 1
+                self.get_next_freq()
+                self.decibels = 0.1
+            else:
+                self.decibels += 0.1
+
+        if self.decibels > 1:
+            if self.user_location_answer == "left":
+                self.dict_left_ear[str(self.freq)]["100"] = 1
+            # Assign the lowest puntuation
+            self.get_next_freq()
+            self.decibels = 0.1
+        if self.freq != -1 and not self.cancelled_test:
+            self.test_sound_event = Clock.schedule_once(self.test_sound, 1)
+        else:
+            # Show results
+            return
+
+
+
+    def round(self, t):
+        self.location_of_sound = random.choice(["left", "right"])
+        self.get_next_freq()
+
+        self.decibels = 0.1
+
+        Clock.schedule_once(self.test_sound, 1)
 
     def start_ear_test(self, *l):
         self.location_of_sound = None
@@ -143,23 +202,19 @@ class TestButtons(GridLayout):
 
         self.user_location_answer = None
 
-        while not self.cancelled_test:
-            self.location_of_sound = random.choice(["left", "right"])
-            self.get_next_freq()
+        if self.cancelled_test:
+            return
 
-            if self.freq == -1:
-                break
-
-            self.test_sound()
-
-
+        Clock.schedule_once(self.round, 0.1)
 
 
     def right_ear(self, instance):
         print("Heard sound in the right ear")
+        self.user_location_answer = "right"
 
     def left_ear(self, instance):
         print("Heard sound in the left ear")
+        self.user_location_answer = "left"
 
 
 class Menu(GridLayout):
