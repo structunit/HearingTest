@@ -82,7 +82,7 @@ class Sound:
 
     def play(self):
         print("Inside play")
-        print(self.frequency, " ", self.volume, " ", self.location)
+        print(self.frequency, "Hz ", int(self.volume*100), "dB ", self.location, " speaker")
         frames = self.data_for_freq(self.frequency, self.time, self.volume, self.location)
         stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True)
         stream.write(frames)

@@ -15,9 +15,7 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
 
-kivy.require('1.11.1')  # replace with your current kivy version !
-
-
+kivy.require('1.11.1')
 
 
 class LoginScreen(GridLayout):
@@ -38,7 +36,8 @@ class TestButtons(GridLayout):
 
         self.cols = 1
         self.label = Label(text='Press the Start test button to start the test \n'
-                                'This test consist in identifying from which direction (left or right) the sound comes.')
+                                'This test consist in identifying from which direction (left or right) the sound comes. \n \n'
+                                'Required use of headphones or speakers.')
         self.add_widget(self.label)
 
         self.test_btn = Button(text="Start test")
@@ -201,7 +200,7 @@ class TestButtons(GridLayout):
             results = {"left": self.dict_left_ear, "right": self.dict_right_ear}
             with open("results.json", "w") as json_file:
                 json.dump(results, json_file)
-                print("Saved json")
+                #print("Saved json")
             return
 
 

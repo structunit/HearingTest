@@ -3,8 +3,8 @@
 """Play a fixed frequency sound."""
 from __future__ import division
 import math
-import struct
 import pyaudio
+import numpy
 
 try:
     from itertools import izip
@@ -23,7 +23,10 @@ p = pyaudio.PyAudio()
 def data_for_freq(frequency: float, time: float = None):
     """get frames for a fixed frequency for a specified time or
     number of frames, if frame_count is specified, the specified
-    time is ignored"""
+    time is ignored
+
+    Source: https://stackoverflow.com/questions/974071/python-library-for-playing-fixed-frequency-sound
+    """
     frame_count = int(RATE * time)
 
     remainder_frames = frame_count % RATE
@@ -58,12 +61,10 @@ def data_for_freq(frequency: float, time: float = None):
     for i in range(remainder_frames):
         wavedata.append(0)
 
-    stereo_signal = zeros([len(signal), 2])  # these two lines are new
-    stereo_signal[:, 1] = signal[:]  # 1 for right speaker, 0 for  left
+    stereo_signal = numpy.zeros([len(wavedata), 2])  # these two lines are new
+    stereo_signal[:, 0] = wavedata[:]  # 1 for right speaker, 0 for  left
 
-    number_of_bytes = str(len(wavedata))
-    wavedata = struct.pack(number_of_bytes + 'h', *wavedata)
-
+    wavedata = stereo_signal.astype(numpy.int16).tostring()
     return wavedata
 
 
