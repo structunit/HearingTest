@@ -152,20 +152,20 @@ class TestButtons(GridLayout):
     def check_answer(self, t):
         if self.location_of_sound == "left":
             if self.user_location_answer == "left":
-                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = 1
+                self.dict_left_ear[str(self.freq)][str(int(self.decibels*100))] = 1
                 self.get_next_freq()
                 self.decibels = 0.1
             elif self.user_location_answer == "right":
-                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = -1
+                self.dict_left_ear[str(self.freq)][str(int(self.decibels*100))] = -1
                 self.decibels += 0.1
             else:
                 self.decibels += 0.1
         elif self.location_of_sound == "right":
             if self.user_location_answer == "left":
-                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = -1
+                self.dict_right_ear[str(self.freq)][str(int(self.decibels*100))] = -1
                 self.decibels += 0.1
             elif self.user_location_answer == "right":
-                self.dict_left_ear[str(self.freq)][str(self.decibels*10)] = 1
+                self.dict_right_ear[str(self.freq)][str(int(self.decibels*100))] = 1
                 self.get_next_freq()
                 self.decibels = 0.1
             else:
@@ -177,16 +177,39 @@ class TestButtons(GridLayout):
             # Assign the lowest puntuation
             self.get_next_freq()
             self.decibels = 0.1
+
+        self.user_location_answer = None
+
         if self.freq != -1 and not self.cancelled_test:
             self.test_sound_event = Clock.schedule_once(self.test_sound, 1)
+        elif self.freq == -1 and self.location_of_sound == "left":
+            self.location_of_sound = "right"  # Next update, the location could be randomly changing
+            self.freq = 0
+            self.get_next_freq()
+            self.decibels = 0.1
+            self.test_sound_event = Clock.schedule_once(self.test_sound, 1)
         else:
-            # Show results
+            # Remove buttons of the test
+            self.test_btn.text = "Start test"
+            self.label.text = "Test ended \n \nResults saved"
+
+            self.remove_widget(self.desk)
+            self.remove_widget(self.right_btn)
+            self.remove_widget(self.left_btn)
+
+            # Save results in a txt file
+            results = {"left": self.dict_left_ear, "right": self.dict_right_ear}
+            with open("results.json", "w") as json_file:
+                json.dump(results, json_file)
+                print("Saved json")
             return
 
 
 
     def round(self, t):
-        self.location_of_sound = random.choice(["left", "right"])
+        #self.location_of_sound = random.choice(["left", "right"])
+        self.location_of_sound = "left"
+
         self.get_next_freq()
 
         self.decibels = 0.1

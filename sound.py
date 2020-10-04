@@ -25,9 +25,13 @@ class Sound:
         self.location = None
 
     def data_for_freq(self, frequency: float, time: float = None, volume: float = 1., loc=None):
-        """get frames for a fixed frequency for a specified time or
+        """
+        get frames for a fixed frequency for a specified time or
         number of frames, if frame_count is specified, the specified
-        time is ignored"""
+        time is ignored
+
+        Source: https://stackoverflow.com/questions/974071/python-library-for-playing-fixed-frequency-sound
+        """
         frame_count = int(RATE * time)
 
         remainder_frames = frame_count % RATE
@@ -90,4 +94,6 @@ class Sound:
         freq_list = list(range(10, 100, 10)) + list(range(100, 1000, 50)) + list(range(1000, 9000, 200))
         for f in freq_list:
             print(f, "Hz")
-            self.play(f, time, vol)
+            self.frequency = f
+            self.volume = vol
+            self.play()
