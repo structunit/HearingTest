@@ -58,6 +58,9 @@ def data_for_freq(frequency: float, time: float = None):
     for i in range(remainder_frames):
         wavedata.append(0)
 
+    stereo_signal = zeros([len(signal), 2])  # these two lines are new
+    stereo_signal[:, 1] = signal[:]  # 1 for right speaker, 0 for  left
+
     number_of_bytes = str(len(wavedata))
     wavedata = struct.pack(number_of_bytes + 'h', *wavedata)
 
@@ -82,5 +85,5 @@ if __name__ == '__main__':
     freq_list = list(range(4000, 9000, 200))
     for f in freq_list:
         print(f, "Hz")
-        play(f, 0.5)
+        play(f, 0.2)
 
