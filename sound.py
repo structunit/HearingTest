@@ -2,6 +2,7 @@ from __future__ import division
 import math
 import struct
 import pyaudio
+import numpy
 
 try:
     from itertools import izip
@@ -17,7 +18,7 @@ p = pyaudio.PyAudio()
 
 
 class Sound:
-    def data_for_freq(self, frequency: float, time: float = None, volume: float = 1.):
+    def data_for_freq(self, frequency: float, time: float = None, volume: float = 1., loc=None):
         """get frames for a fixed frequency for a specified time or
         number of frames, if frame_count is specified, the specified
         time is ignored"""
@@ -55,16 +56,25 @@ class Sound:
         for i in range(remainder_frames):
             wavedata.append(0)
 
-        number_of_bytes = str(len(wavedata))
-        wavedata = struct.pack(number_of_bytes + 'h', *wavedata)
+        if loc:
+            stereo_signal = numpy.zeros([len(wavedata), 2])  # these two lines are new
+            if loc == "left":   # 1 for right speaker, 0 for  left
+                stereo_signal[:, 0] = wavedata[:]
+            else:
+                stereo_signal[:, 1] = wavedata[:]
+
+            wavedata = stereo_signal.astype(numpy.int16).tostring()
+        else:
+            number_of_bytes = str(len(wavedata))
+            wavedata = struct.pack(number_of_bytes + 'h', *wavedata)
 
         return wavedata
 
-    def play(self, frequency: float, time: float, vol: float):
+    def play(self, frequency, time, vol, loc=None):
         """
         play a frequency for a fixed time!
         """
-        frames = self.data_for_freq(frequency, time, vol)
+        frames = self.data_for_freq(frequency, time, vol, loc)
         stream = p.open(format=FORMAT, channels=CHANNELS, rate=RATE, output=True)
         stream.write(frames)
         stream.stop_stream()

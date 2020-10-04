@@ -124,9 +124,10 @@ class TestButtons(GridLayout):
     def test_sound(self):
         self.decibels = 0.1
 
-        while self.decibels < 100:
-            self.test_sound_event = Clock.schedule_once(s.play(self.freq, 0.3, self.decibels))
-            self.decibels += 10
+        while self.decibels < 1:
+            self.test_sound_event = Clock.schedule_once(s.play(self.freq, 0.3, self.decibels, self.location_of_sound))
+            self.decibels += 0.1
+            time.sleep(1)
 
 
     def get_next_freq(self):
