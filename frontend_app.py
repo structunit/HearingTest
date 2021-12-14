@@ -122,10 +122,7 @@ class TestButtons(GridLayout):
     def initialize_sound_dict(self):
         sounds = {"250": 0, "500": 0, "1000": 0, "2000": 0, "4000": 0, "8000": 0}
 
-        db = {}
-        for t in range(0, 110, 10):
-            db[str(t)] = 0
-
+        db = {str(t): 0 for t in range(0, 110, 10)}
         for s in sounds:
             sounds[s] = db
         return sounds
